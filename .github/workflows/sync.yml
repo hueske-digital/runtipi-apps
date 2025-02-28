@@ -37,11 +37,11 @@ jobs:
           git config merge.ours.driver true
           git commit -m "Schütze apps/backrest und .github Ordner vor Upstream-Änderungen" || echo "Keine Änderungen im .gitattributes"
 
-      - name: .github-Ordner zurücksetzen
+      - name: Workflow-Dateien zurücksetzen
         run: |
-          git checkout origin/main -- .github
-          git add .github
-          git commit -m "Reset .github folder to preserve local workflows" || echo "Keine Änderungen im .github"
+          git checkout origin/main -- .github/workflows
+          git add .github/workflows
+          git diff --staged --exit-code || git commit -m "Reset workflow files to preserve local workflows"
 
       - name: Änderungen pushen
         run: |
