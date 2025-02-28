@@ -1,0 +1,37 @@
+name: Upstream-Sync mit Schutz für apps/backrest und .github
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Täglich um 00:00 UTC
+  workflow_dispatch:    # Manuelle Auslösung
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Upstream-Remote hinzufügen und holen
+        run: |
+          git remote add upstream https://github.com/runtipi/runtipi-appstore.git || echo "Upstream bereits hinzugefügt"
+          git fetch upstream
+
+      - name: Merge Upstream-Änderungen
+        run: |
+          git merge upstream/main --no-edit
+
+      - name: Schutz für apps/backrest und .github konfigurieren
+        run: |
+          echo "apps/backrest/ merge=ours" >> .gitattributes
+          echo ".github/ merge=ours" >> .gitattributes
+          git add .gitattributes
+          git config merge.ours.driver true
+          git commit -m "Schütze apps/backrest und .github Ordner vor Upstream-Änderungen" || echo "Keine Änderungen im .gitattributes"
+
+      - name: Änderungen pushen
+        run: |
+          git push origin HEAD
