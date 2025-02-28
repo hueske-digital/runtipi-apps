@@ -15,6 +15,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Git-Konfiguration setzen
+        run: |
+          git config --global user.email "example@example.com"
+          git config --global user.name "Dein Name"
+
       - name: Upstream-Remote hinzufügen und holen
         run: |
           git remote add upstream https://github.com/runtipi/runtipi-appstore.git || echo "Upstream bereits hinzugefügt"
