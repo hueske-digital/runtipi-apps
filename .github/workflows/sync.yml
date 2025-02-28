@@ -22,7 +22,7 @@ jobs:
 
       - name: Merge Upstream-Änderungen
         run: |
-          git merge upstream/main --no-edit
+          git merge upstream/master --no-edit
 
       - name: Schutz für apps/backrest und .github konfigurieren
         run: |
