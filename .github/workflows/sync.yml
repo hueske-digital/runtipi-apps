@@ -17,25 +17,31 @@ jobs:
 
       - name: Git-Konfiguration setzen
         run: |
-          git config --global user.email "example@example.com"
+          git config --global user.email "deine-email@example.com"
           git config --global user.name "Dein Name"
 
       - name: Upstream-Remote hinzufügen und holen
         run: |
           git remote add upstream https://github.com/runtipi/runtipi-appstore.git || echo "Upstream bereits hinzugefügt"
-          git fetch upstream
+          git fetch upstream master:refs/remotes/upstream/master
 
       - name: Merge Upstream-Änderungen
         run: |
           git merge upstream/master --allow-unrelated-histories --no-edit
 
-      - name: Schutz für apps/backrest und .github konfigurieren
+      - name: Schutz für apps/backrest konfigurieren
         run: |
           echo "apps/backrest/ merge=ours" >> .gitattributes
           echo ".github/ merge=ours" >> .gitattributes
           git add .gitattributes
           git config merge.ours.driver true
           git commit -m "Schütze apps/backrest und .github Ordner vor Upstream-Änderungen" || echo "Keine Änderungen im .gitattributes"
+
+      - name: .github-Ordner zurücksetzen
+        run: |
+          git checkout origin/main -- .github
+          git add .github
+          git commit -m "Reset .github folder to preserve local workflows" || echo "Keine Änderungen im .github"
 
       - name: Änderungen pushen
         run: |
