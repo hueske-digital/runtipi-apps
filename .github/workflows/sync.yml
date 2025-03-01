@@ -28,10 +28,9 @@ jobs:
         run: |
           git clone --branch master https://github.com/runtipi/runtipi-appstore temp_repo
 
-      - name: Inhalte aus temp_repo in Arbeitsverzeichnis kopieren
+      - name: Inhalte aus temp_repo in Arbeitsverzeichnis kopieren (ohne .git)
         run: |
-          shopt -s dotglob  # auch versteckte Dateien kopieren
-          cp -R temp_repo/* .
+          rsync -av --exclude='.git' temp_repo/ .
           rm -rf temp_repo
 
       - name: Clone runtipi-backrest (main) in apps/backrest
@@ -39,7 +38,7 @@ jobs:
           mkdir -p apps
           cd apps
           git clone --branch main https://github.com/hueske-digital/runtipi-backrest backrest
-          # Entferne den .git-Ordner, um das Submodul-Problem zu umgehen
+          # Entferne den .git-Ordner, damit es nicht als Submodul behandelt wird
           rm -rf backrest/.git
 
       - name: .github-Ordner aus Clones entfernen
