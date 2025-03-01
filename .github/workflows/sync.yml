@@ -19,15 +19,20 @@ jobs:
 
       - name: Arbeitsbereich säubern (außer .git)
         run: |
-          # Lösche alle Dateien und Ordner außer .git und dem Backup-Verzeichnis
           find . -mindepth 1 \
             -not -name '.git' \
             -not -path './../workflow_backup/*' \
             -exec rm -rf {} +
 
-      - name: Clone runtipi-appstore (master)
+      - name: Clone runtipi-appstore (master) in temporäres Verzeichnis
         run: |
-          git clone --branch master https://github.com/runtipi/runtipi-appstore .
+          git clone --branch master https://github.com/runtipi/runtipi-appstore temp_repo
+
+      - name: Inhalte aus temp_repo in Arbeitsverzeichnis kopieren
+        run: |
+          shopt -s dotglob  # auch versteckte Dateien kopieren
+          cp -R temp_repo/* .
+          rm -rf temp_repo
 
       - name: Clone runtipi-backrest (main) in apps/backrest
         run: |
