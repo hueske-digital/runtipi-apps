@@ -39,6 +39,8 @@ jobs:
           mkdir -p apps
           cd apps
           git clone --branch main https://github.com/hueske-digital/runtipi-backrest backrest
+          # Entferne den .git-Ordner, um das Submodul-Problem zu umgehen
+          rm -rf backrest/.git
 
       - name: .github-Ordner aus Clones entfernen
         run: rm -rf .github
@@ -53,8 +55,11 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
 
-      - name: Änderungen committen und pushen
+      - name: Remote URL mit Token setzen und Änderungen pushen
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
           git add .
           git commit -m "Update Repositories" || echo "Nothing to commit"
           git push origin HEAD
