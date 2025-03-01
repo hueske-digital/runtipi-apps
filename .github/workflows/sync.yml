@@ -1,48 +1,55 @@
-name: Upstream-Sync mit Schutz für apps/backrest und .github
+name: Update Repositories
 
 on:
-  schedule:
-    - cron: "0 0 * * *"  # Täglich um 00:00 UTC
-  workflow_dispatch:    # Manuelle Auslösung
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  sync:
+  update:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Repository auschecken
+      - name: Checkout aktuelles Repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+
+      - name: sync.yml sichern
+        run: |
+          mkdir -p ../workflow_backup/.github/workflows
+          cp .github/workflows/sync.yml ../workflow_backup/.github/workflows/sync.yml
+
+      - name: Arbeitsbereich säubern (außer .git)
+        run: |
+          # Lösche alle Dateien und Ordner außer .git und dem Backup-Verzeichnis
+          find . -mindepth 1 \
+            -not -name '.git' \
+            -not -path './../workflow_backup/*' \
+            -exec rm -rf {} +
+
+      - name: Clone runtipi-appstore (master)
+        run: |
+          git clone --branch master https://github.com/runtipi/runtipi-appstore .
+
+      - name: Clone runtipi-backrest (main) in apps/backrest
+        run: |
+          mkdir -p apps
+          cd apps
+          git clone --branch main https://github.com/hueske-digital/runtipi-backrest backrest
+
+      - name: .github-Ordner aus Clones entfernen
+        run: rm -rf .github
+
+      - name: sync.yml wiederherstellen
+        run: |
+          mkdir -p .github/workflows
+          cp ../workflow_backup/.github/workflows/sync.yml .github/workflows/sync.yml
 
       - name: Git-Konfiguration setzen
         run: |
-          git config --global user.email "deine-email@example.com"
-          git config --global user.name "Dein Name"
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
 
-      - name: Upstream-Remote hinzufügen und holen
+      - name: Änderungen committen und pushen
         run: |
-          git remote add upstream https://github.com/runtipi/runtipi-appstore.git || echo "Upstream bereits hinzugefügt"
-          git fetch upstream master:refs/remotes/upstream/master
-
-      - name: Merge Upstream-Änderungen
-        run: |
-          git merge upstream/master --allow-unrelated-histories --no-edit
-
-      - name: Schutz für apps/backrest konfigurieren
-        run: |
-          echo "apps/backrest/ merge=ours" >> .gitattributes
-          echo ".github/ merge=ours" >> .gitattributes
-          git add .gitattributes
-          git config merge.ours.driver true
-          git commit -m "Schütze apps/backrest und .github Ordner vor Upstream-Änderungen" || echo "Keine Änderungen im .gitattributes"
-
-      - name: Workflow-Dateien zurücksetzen
-        run: |
-          git checkout origin/main -- .github/workflows
-          git add .github/workflows
-          git diff --staged --exit-code || git commit -m "Reset workflow files to preserve local workflows"
-
-      - name: Änderungen pushen
-        run: |
+          git add .
+          git commit -m "Update Repositories" || echo "Nothing to commit"
           git push origin HEAD
